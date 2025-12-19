@@ -12,11 +12,12 @@ data.columns = data.columns.str.strip() # ça permet de supprimer les espaces tr
 # Supprimer les colonnes vides et les colonnes "Unnamed"
 data = data.loc[:, ~data.columns.str.contains('Unnamed', na=False)]
 
+# data = data.head(100) A ACTIVER SI ON VEUT VISUALISER LA MAP
+
 # Afficher les premières lignes du dataset
 print(data.head())
 print(f"\nDimensions du dataset: {data.shape}")
 print(f"\nColonnes: {data.columns.tolist()}")
-
 
 print(f"Nombre de lignes: {len(data)}")
 
@@ -37,7 +38,7 @@ print(data.info())  # column names and data types
 # On centre la carte sur une lat et long moyennes
 map_center = [data['lat'].mean(), data['long'].mean()]
 
-map_init = folium.Map(location=map_center, zoom_start=2)
+map_init = folium.Map(location=map_center, zoom_start=12)
 
 for idx, row in data.iterrows():
     folium.Marker(
