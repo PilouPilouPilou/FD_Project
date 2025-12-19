@@ -18,7 +18,7 @@ def kmeans_clustering(data, n_clusters):
     scaled_data_df.head()
 
     # Appliquer KMeans
-    kmeans = KMeans(n_clusters=n_clusters, init='kmeans++')
+    kmeans = KMeans(n_clusters=n_clusters, init='k-means++')
     kmeans.fit(scaled_data_df)
 
     # Ajouter les labels de cluster au DataFrame original

@@ -1,6 +1,6 @@
 import folium
 
-def create_map(data, output="./output/flickr_map.html"):
+def create_map(data, output):
     map_center = [data['lat'].mean(), data['long'].mean()]
     m = folium.Map(location=map_center, zoom_start=12, tiles='Esri.WorldImagery')
 
