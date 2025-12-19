@@ -14,4 +14,16 @@ data = data.loc[:, ~data.columns.str.contains('Unnamed', na=False)]
 print(data.head())
 print(f"\nDimensions du dataset: {data.shape}")
 print(f"Nombre de lignes: {len(data)}")
+
+
+
+###### DUPLICATION ##########
+# Vérifier s'il y a des duplicats
+data.duplicated()
+print(f"Initial: {len(data)}")
+print("Nombre de duplicats :", data.duplicated().sum())
+
+# Supprimer les duplicats complets
+data_cleaned = data.drop_duplicates(keep='first')
+print(f"After removing duplicates: {len(data_cleaned)}")
 print(data.info())  # column names and data types
