@@ -62,7 +62,12 @@ print("Nombre de duplicats :", data.duplicated().sum())
 # Supprimer les duplicats complets
 data_cleaned = data.drop_duplicates(keep='first')
 print(f"After removing duplicates: {len(data_cleaned)}")
+
+
+# Afficher les informations sur le DataFrame
 print(data.info())  # column names and data types
+print("nombre de null", data.isna().sum())  # count of missing values per column
+
 
 data_cleaned.describe()
 
