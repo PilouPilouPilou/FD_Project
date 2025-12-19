@@ -1,0 +1,36 @@
+NOTES DE TRAVAIL
+
+Dataset initial :
+- Nombre de lignes : 420240
+- Nombre de colonnes : 16
+
+1) Colonnes
+- Suppression des colonnes "Unnamed"
+- Suppression des espaces parasites dans les noms de colonnes
+
+2) Duplicats
+- Vérification des lignes dupliquées avec data.duplicated()
+- Nombre de duplicats trouvés : 252133
+- Suppression des duplicats complets (keep='first')
+- Nombre de lignes après nettoyage : 168107
+
+Remarque :
+- Certains IDs apparaissent plusieurs fois car d'autres champs diffèrent légèrement
+  (ex : valeurs numériques en int vs float).
+- La déduplication a été faite uniquement sur des lignes strictement identiques.
+
+3) Valeurs manquantes
+- Aucune ligne entièrement vide
+- Colonnes les plus impactées :
+  - tags : 103510 valeurs nulles
+  - title : 38329 valeurs nulles
+- Dates : très peu de valeurs manquantes (1 à 12 selon les champs)
+
+Impact :
+- Pas gênant pour la visualisation sur carte
+- Peut poser problème pour l’analyse textuelle (tags, titres)
+
+4) Carte
+- Carte centrée sur la moyenne des latitudes / longitudes
+- Génération d’une carte Folium avec marqueurs
+- Fichier exporté : flickr_map.html
