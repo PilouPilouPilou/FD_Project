@@ -1,101 +1,15 @@
-# pip install --user -U nltk
-# pip install folium
-import nltk
-import folium
-import pandas as pd
+from load_data import load_data
+from clean_data import convert_types, analyze_missing, remove_duplicates
+from visualization import create_map
 
-# Importer le fichier CSV dans un DataFrame pandas
-data = pd.read_csv("./flickr_data2.csv", low_memory=False)
-data.columns = data.columns.str.strip() # ça permet de supprimer les espaces trop bizarres au début des colonnes
+# Chargement
+data = load_data("./data/flickr_data2.csv")
 
+# Nettoyage
+data = convert_types(data)
+analyze_missing(data)
+data = remove_duplicates(data)
 
-# Supprimer les colonnes vides et les colonnes "Unnamed"
-data = data.loc[:, ~data.columns.str.contains('Unnamed', na=False)]
-
-data = data.head(100) # A ACTIVER SI ON VEUT VISUALISER LA MAP
-
-
-###### CONVERSION DES TYPES DE DONNÉES ##########
-# Convertir les colonnes numériques en int ou float
-numeric_columns = ['id', 'lat', 'long', 
-                   'date_taken_minute', 'date_taken_hour', 'date_taken_day', 
-                   'date_taken_month', 'date_taken_year',
-                   'date_upload_minute', 'date_upload_hour', 'date_upload_day', 
-                   'date_upload_month', 'date_upload_year']
-
-for col in numeric_columns:
-    if col in data.columns:
-        # Convertir en float d'abord (gère les décimales), puis en int si pas de décimales
-        data[col] = pd.to_numeric(data[col], errors='coerce')
-        # Si la colonne n'a pas de NaN après conversion, on peut la passer en int
-        if data[col].isna().sum() == 0 and data[col].dtype == 'float64' and (data[col] % 1 == 0).all():
-            data[col] = data[col].astype('int64')
-
-print("Types de données convertis:")
-print(data.dtypes)
-
-###### ANALYSE DES VALEURS MANQUANTES ##########
-print("\n--- Analyse des valeurs manquantes (NaN) ---")
-print("\nNombre de NaN par colonne:")
-missing_data = data.isna().sum()
-print(missing_data[missing_data > 0])
-
-print(f"\nPourcentage de NaN par colonne:")
-missing_percent = (data.isna().sum() / len(data)) * 100
-print(missing_percent[missing_percent > 0].round(2))
-
-# Identifier les lignes avec des valeurs manquantes dans les dates
-date_columns = ['date_taken_minute', 'date_taken_hour', 'date_taken_day', 'date_taken_month', 'date_taken_year',
-                'date_upload_minute', 'date_upload_hour', 'date_upload_day', 'date_upload_month', 'date_upload_year']
-rows_with_missing_dates = data[data[date_columns].isna().any(axis=1)]
-
-print(f"\nNombre de lignes avec au moins une date manquante: {len(rows_with_missing_dates)}")
-print("\nExemples de lignes avec des dates manquantes:")
-print(rows_with_missing_dates[['id', 'user', 'title'] + date_columns].head(10))
-
-###### DUPLICATION ##########
-# Vérifier s'il y a des duplicats
-data.duplicated()
-print(f"\nInitial: {len(data)}")
-print("Nombre de duplicats :", data.duplicated().sum())
-
-# Supprimer les duplicats complets
-data_cleaned = data.drop_duplicates(keep='first')
-print(f"After removing duplicates: {len(data_cleaned)}")
-
-
-# Afficher les informations sur le DataFrame
-print(data.info())  # column names and data types
-print("nombre de null", data.isna().sum())  # count of missing values per column
-
-
-data_cleaned.describe()
-
-# Créer une carte
-# On centre la carte sur une lat et long moyennes
-map_center = [data['lat'].mean(), data['long'].mean()]
-
-map_init = folium.Map(location=map_center, zoom_start=12, tiles='Esri.WorldImagery') # On change le fond de carte sur l'option Tiles
-
-for idx, row in data.iterrows():
-
-    popup_text = f"""
-    <b>User:</b> {row['user']}<br>
-    <b>Tags:</b> {row['tags']}<br>
-    <b>Title:</b> {row['title']}<br>
-    <b>Date Taken:</b> {row['date_taken_year']}-{row['date_taken_month']}-{row['date_taken_day']}
-    """
-
-    folium.Marker(
-        location=[row['lat'], row['long']],
-        radius=1,
-        popup=folium.Popup(popup_text, max_width=300),
-        color='blue', 
-        fill=True,
-        fillColor='blue',
-        fillOpacity=0.6
-    ).add_to(map_init)
-
-# Sauvegarder la carte pour la regarder après
-map_init.save("flickr_map.html")
-print("Carte sauvegardée sous 'flickr_map.html'")
+# Visualisation
+data = data.head(100) # Limiter à 100 entrées pour la visualisation
+create_map(data)

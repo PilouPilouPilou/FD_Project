@@ -34,3 +34,26 @@ Impact :
 - Carte centrée sur la moyenne des latitudes / longitudes
 - Génération d’une carte Folium avec marqueurs
 - Fichier exporté : flickr_map.html
+
+5) Analyse des valeurs manquantes (NaN)
+Nombre de NaN par colonne:
+tags                  103510
+title                  38329
+date_taken_minute          1
+date_upload_minute       141
+date_upload_hour           4
+date_upload_day            2
+date_upload_year           1
+dtype: int64
+
+Pourcentage de NaN par colonne:
+tags                  24.63
+title                  9.12
+date_taken_minute      0.00
+date_upload_minute     0.03
+date_upload_hour       0.00
+date_upload_day        0.00
+date_upload_year       0.00
+dtype: float64
+
+Nombre de lignes avec au moins une date manquante: 143
