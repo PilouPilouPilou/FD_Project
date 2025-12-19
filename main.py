@@ -34,6 +34,25 @@ for col in numeric_columns:
 print("Types de données convertis:")
 print(data.dtypes)
 
+###### ANALYSE DES VALEURS MANQUANTES ##########
+print("\n--- Analyse des valeurs manquantes (NaN) ---")
+print("\nNombre de NaN par colonne:")
+missing_data = data.isna().sum()
+print(missing_data[missing_data > 0])
+
+print(f"\nPourcentage de NaN par colonne:")
+missing_percent = (data.isna().sum() / len(data)) * 100
+print(missing_percent[missing_percent > 0].round(2))
+
+# Identifier les lignes avec des valeurs manquantes dans les dates
+date_columns = ['date_taken_minute', 'date_taken_hour', 'date_taken_day', 'date_taken_month', 'date_taken_year',
+                'date_upload_minute', 'date_upload_hour', 'date_upload_day', 'date_upload_month', 'date_upload_year']
+rows_with_missing_dates = data[data[date_columns].isna().any(axis=1)]
+
+print(f"\nNombre de lignes avec au moins une date manquante: {len(rows_with_missing_dates)}")
+print("\nExemples de lignes avec des dates manquantes:")
+print(rows_with_missing_dates[['id', 'user', 'title'] + date_columns].head(10))
+
 ###### DUPLICATION ##########
 # Vérifier s'il y a des duplicats
 data.duplicated()
