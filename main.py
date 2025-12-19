@@ -14,19 +14,30 @@ data = data.loc[:, ~data.columns.str.contains('Unnamed', na=False)]
 
 # data = data.head(100) A ACTIVER SI ON VEUT VISUALISER LA MAP
 
-# Afficher les premières lignes du dataset
-print(data.head())
-print(f"\nDimensions du dataset: {data.shape}")
-print(f"\nColonnes: {data.columns.tolist()}")
 
-print(f"Nombre de lignes: {len(data)}")
+###### CONVERSION DES TYPES DE DONNÉES ##########
+# Convertir les colonnes numériques en int ou float
+numeric_columns = ['id', 'lat', 'long', 
+                   'date_taken_minute', 'date_taken_hour', 'date_taken_day', 
+                   'date_taken_month', 'date_taken_year',
+                   'date_upload_minute', 'date_upload_hour', 'date_upload_day', 
+                   'date_upload_month', 'date_upload_year']
 
+for col in numeric_columns:
+    if col in data.columns:
+        # Convertir en float d'abord (gère les décimales), puis en int si pas de décimales
+        data[col] = pd.to_numeric(data[col], errors='coerce')
+        # Si la colonne n'a pas de NaN après conversion, on peut la passer en int
+        if data[col].isna().sum() == 0 and data[col].dtype == 'float64' and (data[col] % 1 == 0).all():
+            data[col] = data[col].astype('int64')
 
+print("Types de données convertis:")
+print(data.dtypes)
 
 ###### DUPLICATION ##########
 # Vérifier s'il y a des duplicats
 data.duplicated()
-print(f"Initial: {len(data)}")
+print(f"\nInitial: {len(data)}")
 print("Nombre de duplicats :", data.duplicated().sum())
 
 # Supprimer les duplicats complets
