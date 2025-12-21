@@ -12,6 +12,6 @@ analyze_missing(data)
 data = remove_duplicates(data)
 
 # Visualisation
-data = data.head(100) # Limiter à 100 entrées pour la visualisation
-kmeans_clustering(data, n_clusters=5)
+data = data.head(10000) # Limiter à 100 entrées pour la visualisation
+data, kmeans, inertia = kmeans_clustering(data, n_clusters=20)  # Récupérer data modifiée
 create_map(data, output="./output/flickr_map.html")
