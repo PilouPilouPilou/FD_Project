@@ -1,5 +1,5 @@
 from load_data import load_data
-from clean_data import convert_types, analyze_missing, remove_duplicates
+from clean_data import convert_types, analyze_missing, remove_duplicates, detect_anomalies
 from visualization import create_map
 from kmeans import kmeans_clustering
 from hierarchical import hierarchical_clustering
@@ -11,7 +11,11 @@ data = load_data("./data/flickr_data2.csv")
 
 # Nettoyage
 data = convert_types(data)
-analyze_missing(data)
+
+# Détection d'anomalies (génère un CSV de synthèse)
+_anomalies = detect_anomalies(data, save_path="./output/anomalies.csv")
+
+# analyze_missing(data)
 data = remove_duplicates(data)
 
 # Visualisation
