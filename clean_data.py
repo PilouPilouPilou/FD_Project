@@ -86,25 +86,19 @@ def _build_datetime(df, prefix):
     (year, month, day, hour, minute) avec le préfixe donné.
     Retourne une Series de type datetime (NaT en cas d'erreur).
     """
-    cols = [
+    required = [
         f"{prefix}_year",
         f"{prefix}_month",
         f"{prefix}_day",
         f"{prefix}_hour",
         f"{prefix}_minute",
     ]
-    present = [c for c in cols if c in df.columns]
-    if len(present) < 5:
-        # Colonnes insuffisantes pour construire une datetime
+    # Si une des colonnes requises manque, retourner une Series de NaT
+    if not all(c in df.columns for c in required):
         return pd.Series(pd.NaT, index=df.index)
 
-    tmp = df[[
-        f"{prefix}_year",
-        f"{prefix}_month",
-        f"{prefix}_day",
-        f"{prefix}_hour",
-        f"{prefix}_minute",
-    ]].rename(
+    # Préparer le DataFrame avec les noms standard attendus par pd.to_datetime
+    tmp = df[required].rename(
         columns={
             f"{prefix}_year": "year",
             f"{prefix}_month": "month",
@@ -114,19 +108,18 @@ def _build_datetime(df, prefix):
         }
     )
 
-    # Conversion en numérique avec coercition
+    # Conversion en numérique avec coercition pour gérer les valeurs non conformes
     for c in ["year", "month", "day", "hour", "minute"]:
-        if c in tmp.columns:
-            tmp[c] = pd.to_numeric(tmp[c], errors="coerce")
+        tmp[c] = pd.to_numeric(tmp[c], errors="coerce")
 
-    # Construire uniquement pour les lignes complètes (sans NaN sur les 5 composantes)
+    # Calculer uniquement pour les lignes complètes; les autres restent NaT
     complete_mask = tmp[["year", "month", "day", "hour", "minute"]].notna().all(axis=1)
     result = pd.Series(pd.NaT, index=df.index)
-
     if complete_mask.any():
-        complete = tmp.loc[complete_mask, ["year", "month", "day", "hour", "minute"]].astype("int64")
-        result.loc[complete_mask] = pd.to_datetime(complete, errors="coerce")
-
+        result.loc[complete_mask] = pd.to_datetime(
+            tmp.loc[complete_mask, ["year", "month", "day", "hour", "minute"]],
+            errors="coerce",
+        )
     return result
 
 
@@ -139,6 +132,7 @@ def detect_anomalies(data, save_path=None):
     - Coordonnées manquantes
     - Coordonnées hors bornes (lat ∉ [-90, 90], long ∉ [-180, 180])
     - Coordonnées (0, 0) (souvent valeurs par défaut/sentinelles)
+    - Coordonnées hors de Lyon (lat ∉ [45.65, 45.85], long ∉ [4.72, 5.05])
     - Parties de date manquantes (taken/upload)
     - Parties de date hors plage (minutes 0-59, heures 0-23, jours 1-31, mois 1-12)
     - Date d'upload antérieure à la date de prise
@@ -157,6 +151,13 @@ def detect_anomalies(data, save_path=None):
         | (~df["long"].between(-180, 180, inclusive="both") if has_long else False)
     )
     zero_coords = ((df["lat"] == 0) & (df["long"] == 0)) if (has_lat and has_long) else False
+    
+    # Coordonnées hors de Lyon (bounding box approximative de Lyon métropolitain)
+    # Lyon: lat ~45.65 à 45.85, long ~4.72 à 5.05
+    out_of_lyon = (
+        (~df["lat"].between(45.65, 45.85, inclusive="both") if has_lat else False)
+        | (~df["long"].between(4.72, 5.05, inclusive="both") if has_long else False)
+    )
 
     # Vérifications des dates
     taken_prefix = "date_taken"
@@ -224,6 +225,7 @@ def detect_anomalies(data, save_path=None):
         "missing_coords": missing_coords,
         "out_of_bounds": out_of_bounds,
         "zero_coords": zero_coords,
+        "out_of_lyon": out_of_lyon,
         "taken_missing_parts": taken_missing_parts,
         "taken_minute_oob": taken_minute_oob,
         "taken_hour_oob": taken_hour_oob,
