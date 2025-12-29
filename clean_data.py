@@ -72,9 +72,11 @@ def analyze_missing(data):
 
 def remove_duplicates(data):
     print(f"\nInitial: {len(data)}")
-    print("Nombre de duplicats :", data.duplicated().sum())
+    # Dédoublonnage spécifique: on conserve une seule ligne par paire (id, user)
+    dup_mask = data.duplicated(subset=["id", "user"], keep="first")
+    print("Duplicats sur (id, user) :", int(dup_mask.sum()))
 
-    data_cleaned = data.drop_duplicates(keep='first')
+    data_cleaned = data.drop_duplicates(subset=["id", "user"], keep="first")
 
     print(f"After removing duplicates: {len(data_cleaned)}")
     return data_cleaned

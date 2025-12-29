@@ -15,7 +15,12 @@ data = convert_types(data)
 # Détection d'anomalies (génère un CSV de synthèse)
 _anomalies = detect_anomalies(data, save_path="./output/anomalies.csv")
 
-# analyze_missing(data)
+# Retirer les anomalies avant la visualisation et le clustering
+_before = len(data)
+data = data.drop(index=_anomalies.index)
+_removed = _before - len(data)
+print(f"Suppression anomalies: {_removed} (attendues: {len(_anomalies)})")
+
 data = remove_duplicates(data)
 
 # Visualisation
