@@ -1,5 +1,5 @@
 from load_data import load_data
-from clean_data import convert_types, analyze_missing, remove_duplicates, detect_anomalies
+from clean_data import convert_types, remove_duplicates, detect_anomalies
 from visualization import create_map
 from kmeans import kmeans_clustering
 from hierarchical import hierarchical_clustering
@@ -12,8 +12,28 @@ data = load_data("./data/flickr_data2.csv")
 # Nettoyage
 data = convert_types(data)
 
+# Dédoublonnage 
+print("\n--- Dédoublonnage des données ---")
+data = remove_duplicates(data)
+
+
 # Détection d'anomalies (génère un CSV de synthèse)
-_anomalies = detect_anomalies(data, save_path="./output/anomalies.csv")
+_anomalies, anomaly_counts = detect_anomalies(data, save_path="./output/anomalies.csv")
+
+# Afficher un tableau synthétique des anomalies (nom | count | % of total anomalies)
+total_anom = len(_anomalies)
+if total_anom > 0:
+    max_name = max(len(n) for n in anomaly_counts.keys())
+    header = f"{'Anomalie'.ljust(max_name)} | Count | %"
+    sep = '-' * len(header)
+    print('\nRésumé des anomalies (par type):')
+    print(header)
+    print(sep)
+    for name, count in anomaly_counts.items():
+        pct = (count / total_anom) * 100 if total_anom else 0
+        print(f"{name.ljust(max_name)} | {str(count).rjust(5)} | {pct:5.1f}%")
+else:
+    print('\nAucune anomalie détectée.')
 
 # Retirer les anomalies avant la visualisation et le clustering
 _before = len(data)
@@ -21,7 +41,6 @@ data = data.drop(index=_anomalies.index)
 _removed = _before - len(data)
 print(f"Suppression anomalies: {_removed} (attendues: {len(_anomalies)})")
 
-data = remove_duplicates(data)
 
 # Visualisation
 data = data.head(10000) # Limiter à 10000 entrées pour la visualisation pas trop lente

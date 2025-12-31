@@ -44,7 +44,11 @@ def convert_types(data):
     data["datetime_upload"] = _build_datetime(data, "date_upload")
 
     print("Types de données convertis:")
-    print(data.dtypes)
+    # Afficher les types de façon lisible
+    try:
+        print(data.dtypes.to_string())
+    except Exception:
+        print(data.dtypes)
     return data
 
 
@@ -71,14 +75,14 @@ def analyze_missing(data):
 
 
 def remove_duplicates(data):
-    print(f"\nInitial: {len(data)}")
+    print(f"Nombre de lignes initialement: {len(data)}")
     # Dédoublonnage spécifique: on conserve une seule ligne par paire (id, user)
     dup_mask = data.duplicated(subset=["id", "user"], keep="first")
     print("Duplicats sur (id, user) :", int(dup_mask.sum()))
 
     data_cleaned = data.drop_duplicates(subset=["id", "user"], keep="first")
 
-    print(f"After removing duplicates: {len(data_cleaned)}")
+    print(f"Nombre de lignes après suppression des duplicats: {len(data_cleaned)}")
     return data_cleaned
 
 
@@ -264,9 +268,16 @@ def detect_anomalies(data, save_path=None):
 
     # Afficher résumé
     print("\n--- Détection d'anomalies ---")
-    for name, m in masks.items():
-        print(f"{name}: {int(m.sum())}")
-    print(f"Total lignes avec au moins une anomalie: {len(anomalies_df)}")
+    rows = [(name, int(m.sum())) for name, m in masks.items()]
+    if rows:
+        max_name = max(len(r[0]) for r in rows)
+        header = f"{'Anomalie'.ljust(max_name)} | Count"
+        sep = '-' * len(header)
+        print(header)
+        print(sep)
+        for name, count in rows:
+            print(f"{name.ljust(max_name)} | {count}")
+    print(f"\nTotal lignes avec au moins une anomalie: {len(anomalies_df)}")
 
     # Sauvegarde éventuelle
     if save_path:
@@ -276,4 +287,8 @@ def detect_anomalies(data, save_path=None):
         anomalies_df.to_csv(save_path, index=False)
         print(f"Rapport d'anomalies sauvegardé sous '{save_path}'")
 
-    return anomalies_df
+    # Préparer un résumé dict {anomaly_name: count}
+    summary = {name: int(m.sum()) for name, m in masks.items()}
+
+    # Retourner à la fois le DataFrame d'anomalies et le résumé
+    return anomalies_df, summary

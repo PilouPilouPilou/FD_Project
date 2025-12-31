@@ -8,6 +8,8 @@ def create_map(data, output):
     output_dir = os.path.dirname(output)
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir)
+        
+    print("\nCréation de la carte...")
 
     # Normaliser les noms de colonnes (car certains espaces existent)
     data = data.copy()
