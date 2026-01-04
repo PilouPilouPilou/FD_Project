@@ -146,24 +146,27 @@ def detect_anomalies(data, save_path=None):
     Si save_path est fourni, enregistre le rapport en CSV.
     """
     df = data.copy()
-    df.columns = df.columns.str.strip()
 
-    # Vérifications coordonnées
-    has_lat = "lat" in df.columns
-    has_long = "long" in df.columns
-    missing_coords = (df["lat"].isna() if has_lat else False) | (df["long"].isna() if has_long else False)
-    out_of_bounds = (
-        (~df["lat"].between(-90, 90, inclusive="both") if has_lat else False)
-        | (~df["long"].between(-180, 180, inclusive="both") if has_long else False)
-    )
-    zero_coords = ((df["lat"] == 0) & (df["long"] == 0)) if (has_lat and has_long) else False
-    
-    # Coordonnées hors de Lyon (bounding box approximative de Lyon métropolitain)
-    # Lyon: lat ~45.65 à 45.85, long ~4.72 à 5.05
-    out_of_lyon = (
-        (~df["lat"].between(45.65, 45.85, inclusive="both") if has_lat else False)
-        | (~df["long"].between(4.72, 5.05, inclusive="both") if has_long else False)
-    )
+    # Vérifications coordonnées - initialiser les masques à False
+    missing_coords = pd.Series(False, index=df.index)
+    out_of_bounds = pd.Series(False, index=df.index)
+    zero_coords = pd.Series(False, index=df.index)
+    out_of_lyon = pd.Series(False, index=df.index)
+
+    # Si les colonnes existent, calculer les masques
+    if "lat" in df.columns and "long" in df.columns:
+        missing_coords = df["lat"].isna() | df["long"].isna()
+        out_of_bounds = (
+            ~df["lat"].between(-90, 90, inclusive="both") 
+            | ~df["long"].between(-180, 180, inclusive="both")
+        )
+        zero_coords = (df["lat"] == 0) & (df["long"] == 0)
+        # Coordonnées hors de Lyon (périmètre approximatif de la métropole de Lyon)
+        # Lyon: lat ~45.65 à 45.85, long ~4.72 à 5.05
+        out_of_lyon = (
+            ~df["lat"].between(45.65, 45.85, inclusive="both") 
+            | ~df["long"].between(4.72, 5.05, inclusive="both")
+        )
 
     # Vérifications des dates
     taken_prefix = "date_taken"
@@ -190,7 +193,7 @@ def detect_anomalies(data, save_path=None):
         taken_hour_oob = out_of_range(df[f"{taken_prefix}_hour"], 0, 23)
         taken_day_oob = out_of_range(df[f"{taken_prefix}_day"], 1, 31)
         taken_month_oob = out_of_range(df[f"{taken_prefix}_month"], 1, 12)
-        # Années: bornes larges pour Flickr
+        # Années: bornes larges pour couvrir les photos anciennes et récentes
         taken_year_oob = out_of_range(df[f"{taken_prefix}_year"], 1900, 2026)
     else:
         taken_missing_parts = False
@@ -254,15 +257,15 @@ def detect_anomalies(data, save_path=None):
     anomalies_df = df.loc[any_anomaly].copy()
 
     def reasons_for_idx(idx):
-        rs = []
-        for name, m in masks.items():
+        rs = [] # liste des raisons
+        for name, m in masks.items(): # parcourir les masques des différentes anomalies
             try:
-                if bool(m.loc[idx]):
-                    rs.append(name)
+                if bool(m.loc[idx]): # si l'anomalie est true pour cet index
+                    rs.append(name) # ajouter le nom de l'anomalie pour cette ligne
             except KeyError:
                 # index absent dans le masque (ne devrait pas arriver), ignorer
                 pass
-        return ", ".join(rs)
+        return ", ".join(rs) # retourner une chaîne de raisons séparée par des virgules
 
     anomalies_df["anomaly_reasons"] = [reasons_for_idx(i) for i in anomalies_df.index]
 

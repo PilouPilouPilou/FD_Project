@@ -20,20 +20,6 @@ data = remove_duplicates(data)
 # Détection d'anomalies (génère un CSV de synthèse)
 _anomalies, anomaly_counts = detect_anomalies(data, save_path="./output/anomalies.csv")
 
-# Afficher un tableau synthétique des anomalies (nom | count | % of total anomalies)
-total_anom = len(_anomalies)
-if total_anom > 0:
-    max_name = max(len(n) for n in anomaly_counts.keys())
-    header = f"{'Anomalie'.ljust(max_name)} | Count | %"
-    sep = '-' * len(header)
-    print('\nRésumé des anomalies (par type):')
-    print(header)
-    print(sep)
-    for name, count in anomaly_counts.items():
-        pct = (count / total_anom) * 100 if total_anom else 0
-        print(f"{name.ljust(max_name)} | {str(count).rjust(5)} | {pct:5.1f}%")
-else:
-    print('\nAucune anomalie détectée.')
 
 # Retirer les anomalies avant la visualisation et le clustering
 _before = len(data)
