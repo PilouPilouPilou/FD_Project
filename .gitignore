@@ -208,3 +208,9 @@ __marimo__/
 # HTML files
 *.html
 flickr_map.html
+
+# PNG files
+*.png
+
+# CSV file for anomaly report
+output/anomalies.csv

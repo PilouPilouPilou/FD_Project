@@ -57,3 +57,7 @@ date_upload_year       0.00
 dtype: float64
 
 Nombre de lignes avec au moins une date manquante: 143
+
+Regarder le cas de meme id et meme auteur, car parfois post avec plusieurs photos
+Changer parametrage de out of Lyon pour resserer
+Optionnel : regarder ce décallage dans les dates qui casse tout

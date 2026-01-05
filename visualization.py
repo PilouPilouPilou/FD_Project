@@ -2,12 +2,16 @@ import folium
 import os
 import numpy as np
 from shapely.geometry import MultiPoint, Point
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 def create_map(data, output):
     # Créer le dossier s'il existe pas
     output_dir = os.path.dirname(output)
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir)
+        
+    print("\nCréation de la carte...")
 
     # Normaliser les noms de colonnes (car certains espaces existent)
     data = data.copy()
@@ -16,15 +20,31 @@ def create_map(data, output):
     map_center = [data['lat'].mean(), data['long'].mean()]
     m = folium.Map(location=map_center, zoom_start=12, tiles='Esri.WorldImagery') # Utiliser une carte satellite avec l'option Tiles, plein d'autres sont possibles
 
-    # Liste de couleurs pour les clusters (à ajouter d'autres peut-être)
-    colors = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'beige', 'darkblue', 'darkgreen']
+    # Générer une palette de couleurs distinctes basée sur le nombre de clusters
+    if 'cluster' in data.columns:
+        unique_clusters = sorted([c for c in data['cluster'].unique() if c != -1])
+        n_clusters = len(unique_clusters)
+        
+        if n_clusters > 0:
+            # Utiliser une colormap avec des couleurs bien distinctes
+            colormap = cm.get_cmap('tab20' if n_clusters <= 20 else 'hsv', n_clusters)
+            colors = {}
+            for i, cluster_id in enumerate(unique_clusters):
+                rgb = colormap(i)[:3]  # Récupérer RGB sans alpha
+                colors[cluster_id] = '#{:02x}{:02x}{:02x}'.format(
+                    int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255)
+                )
+        else:
+            colors = {}
+    else:
+        colors = {}
 
     # Ajouter les points
     for _, row in data.iterrows():
 
         # Appliquer une couleur selon le cluster (sinon gris)
         cluster = int(row['cluster']) if 'cluster' in row and row['cluster'] != -1 else -1
-        color = colors[cluster % len(colors)] if cluster >= 0 else 'gray'
+        color = colors.get(cluster, 'gray')
 
         # Popup avec infos
         popup_text = f"""
@@ -56,7 +76,7 @@ def create_map(data, output):
                 hull = MultiPoint(coords).convex_hull # Convex hull : un polygone englobant tous les points 
                 if hull.geom_type == 'Polygon':
                     poly_coords = [[y, x] for x, y in hull.exterior.coords]  # folium : [lat, lon]
-                    color = colors[int(cluster_id) % len(colors)]
+                    color = colors.get(cluster_id, 'gray')
                     folium.Polygon(
                         locations=poly_coords,
                         color=color,
@@ -73,7 +93,7 @@ def create_map(data, output):
                 folium.Circle(
                     location=[lat_mean, lon_mean],
                     radius=100,  
-                    color=colors[int(cluster_id) % len(colors)],
+                    color=colors.get(cluster_id, 'gray'),
                     fill=True,
                     fill_opacity=0.15
                 ).add_to(m)
