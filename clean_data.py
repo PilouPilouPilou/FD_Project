@@ -138,7 +138,7 @@ def detect_anomalies(data, save_path=None):
     - Coordonnées manquantes
     - Coordonnées hors bornes (lat ∉ [-90, 90], long ∉ [-180, 180])
     - Coordonnées (0, 0) (souvent valeurs par défaut/sentinelles)
-    - Coordonnées hors de Lyon (lat ∉ [45.65, 45.85], long ∉ [4.72, 5.05])
+    - Coordonnées hors de Lyon (lat ∉ [45.68, 45.82], long ∉ [4.75, 4.95])
     - Parties de date manquantes (taken/upload)
     - Parties de date hors plage (minutes 0-59, heures 0-23, jours 1-31, mois 1-12)
     - Date d'upload antérieure à la date de prise
@@ -164,8 +164,8 @@ def detect_anomalies(data, save_path=None):
         # Coordonnées hors de Lyon (périmètre approximatif de la métropole de Lyon)
         # Lyon: lat ~45.65 à 45.85, long ~4.72 à 5.05
         out_of_lyon = (
-            ~df["lat"].between(45.65, 45.85, inclusive="both") 
-            | ~df["long"].between(4.72, 5.05, inclusive="both")
+            ~df["lat"].between(45.68, 45.82, inclusive="both") 
+            | ~df["long"].between(4.75, 4.95, inclusive="both")
         )
 
     # Vérifications des dates
