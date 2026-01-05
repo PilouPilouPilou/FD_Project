@@ -19,7 +19,7 @@ def create_map(data, output):
     m = folium.Map(location=map_center, zoom_start=12, tiles='Esri.WorldImagery') # Utiliser une carte satellite avec l'option Tiles, plein d'autres sont possibles
 
     # Liste de couleurs pour les clusters (à ajouter d'autres peut-être)
-    colors = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'beige', 'darkblue', 'darkgreen']
+    colors = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'yellow', 'beige', 'darkblue', 'darkgreen']
 
     # Ajouter les points
     for _, row in data.iterrows():
