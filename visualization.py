@@ -1,6 +1,7 @@
 import folium
 import os
 import numpy as np
+import pandas as pd
 from shapely.geometry import MultiPoint, Point
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -39,33 +40,7 @@ def create_map(data, output):
     else:
         colors = {}
 
-    # Ajouter les points
-    for _, row in data.iterrows():
-
-        # Appliquer une couleur selon le cluster (sinon gris)
-        cluster = int(row['cluster']) if 'cluster' in row and row['cluster'] != -1 else -1
-        color = colors.get(cluster, 'gray')
-
-        # Popup avec infos
-        popup_text = f"""
-        <b>Cluster:</b> {cluster}<br>
-        <b>User:</b> {row['user']}<br>
-        <b>Tags:</b> {row['tags']}<br>
-        <b>Title:</b> {row['title']}<br>
-        <b>Date Taken:</b> {row['date_taken_year']}-{row['date_taken_month']}-{row['date_taken_day']}
-        """
-
-        folium.CircleMarker(
-            location=[row['lat'], row['long']],
-            popup=folium.Popup(popup_text, max_width=300),
-            radius=4,
-            color=color,
-            fill=True,
-            fillColor=color,
-            fillOpacity=0.8
-        ).add_to(m)
-
-    # Tracer périmètre (convex hull) par cluster si la colonne 'cluster' existe
+    # Tracer périmètre (convex hull) par cluster AVANT les points pour ne pas les recouvrir
     if 'cluster' in data.columns:
         for cluster_id in sorted([c for c in data['cluster'].unique() if c != -1]): 
             cluster_df = data.loc[data['cluster'] == cluster_id, ['lat', 'long']]
@@ -97,6 +72,38 @@ def create_map(data, output):
                     fill=True,
                     fill_opacity=0.15
                 ).add_to(m)
+
+    # Ajouter les points
+    for _, row in data.iterrows():
+
+        # Appliquer une couleur selon le cluster (sinon gris)
+        cluster = int(row['cluster']) if 'cluster' in row and row['cluster'] != -1 else -1
+        color = colors.get(cluster, 'gray')
+
+        # Formater les dates
+        date_taken_str = row['datetime_taken'] if pd.notna(row['datetime_taken']) else 'N/A'
+        date_upload_str = row['datetime_upload'] if pd.notna(row['datetime_upload']) else 'N/A'
+
+        # Popup avec infos
+        popup_text = f"""
+        <b>Cluster:</b> {cluster}<br>
+        <b>User:</b> {row['user']}<br>
+        <b>Title:</b> {row['title']}<br>
+        <b>Tags:</b> {row['tags']}<br>
+        <b>Date Taken:</b> {date_taken_str}<br>
+        <b>Date Upload:</b> {date_upload_str}<br>
+        <a href="{row['url']}" target="_blank">🔗 Voir la photo sur Flickr</a>
+        """
+
+        folium.CircleMarker(
+            location=[row['lat'], row['long']],
+            popup=folium.Popup(popup_text, max_width=300),
+            radius=4,
+            color=color,
+            fill=True,
+            fillColor=color,
+            fillOpacity=0.8
+        ).add_to(m)
 
     m.save(output)
     print(f"Carte sauvegardée sous '{output}'")
