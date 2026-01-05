@@ -56,4 +56,7 @@ plt.savefig("./output/elbow.png")
 plt.close()
 print("Elbow plot saved to ./output/elbow.png")
 
+# Calcul et visualisation avec la méthode DBSCAN
+data = dbscan_clustering(data, None, None)
+create_map(data, output="./output/flickr_map_dbscan.html")
 
