@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+from load_data import load_data
 
 
 def _cast_numeric_columns(df, numeric_columns):
@@ -295,3 +296,44 @@ def detect_anomalies(data, save_path=None):
 
     # Retourner à la fois le DataFrame d'anomalies et le résumé
     return anomalies_df, summary
+
+
+def save_cleaned(data, path="./data/cleaned_flickr_data.csv"):
+    """Save cleaned DataFrame to CSV (creates directories if needed)."""
+    directory = os.path.dirname(path)
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory, exist_ok=True)
+    data.to_csv(path, index=False)
+    print(f"\nDonnées nettoyées sauvegardées dans {path}")
+
+
+def load_cleaned(path="./data/cleaned_flickr_data.csv"):
+    """Load cleaned CSV if it exists, otherwise return None."""
+    if os.path.exists(path):
+        return pd.read_csv(path)
+    return None
+
+
+# Chargement des datas nettoyées
+data = load_data("./data/flickr_data2.csv")
+
+# Nettoyage
+data = convert_types(data)
+
+# Dédoublonnage 
+print("\n--- Dédoublonnage des données ---")
+data = remove_duplicates(data)
+
+
+# Détection d'anomalies (génère un CSV de synthèse)
+_anomalies, anomaly_counts = detect_anomalies(data, save_path="./output/anomalies.csv")
+
+
+# Retirer les anomalies avant la visualisation et le clustering
+_before = len(data)
+data = data.drop(index=_anomalies.index)
+_removed = _before - len(data)
+print(f"Suppression anomalies: {_removed} (attendues: {len(_anomalies)})")
+
+# Sauvegarder les données nettoyées pour réutilisation ultérieure
+save_cleaned(data, "./data/cleaned_flickr_data.csv")

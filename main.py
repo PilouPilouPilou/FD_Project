@@ -1,31 +1,12 @@
 from load_data import load_data
-from clean_data import convert_types, remove_duplicates, detect_anomalies
 from visualization import create_map
 from kmeans import kmeans_clustering
 from hierarchical import hierarchical_clustering
 from DBSCAN import dbscan_clustering
 import matplotlib.pyplot as plt
 
-# Chargement
-data = load_data("./data/flickr_data2.csv")
-
-# Nettoyage
-data = convert_types(data)
-
-# Dédoublonnage 
-print("\n--- Dédoublonnage des données ---")
-data = remove_duplicates(data)
-
-
-# Détection d'anomalies (génère un CSV de synthèse)
-_anomalies, anomaly_counts = detect_anomalies(data, save_path="./output/anomalies.csv")
-
-
-# Retirer les anomalies avant la visualisation et le clustering
-_before = len(data)
-data = data.drop(index=_anomalies.index)
-_removed = _before - len(data)
-print(f"Suppression anomalies: {_removed} (attendues: {len(_anomalies)})")
+# Chargement des données nettoyées
+data = load_data("./data/cleaned_flickr_data.csv")
 
 
 # Visualisation
