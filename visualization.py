@@ -6,7 +6,7 @@ from shapely.geometry import MultiPoint, Point
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-def create_map(data, output):
+def create_map(data, output, top_terms=None):
     # Créer le dossier s'il existe pas
     output_dir = os.path.dirname(output)
     if output_dir and not os.path.exists(output_dir):
@@ -28,7 +28,8 @@ def create_map(data, output):
         
         if n_clusters > 0:
             # Utiliser une colormap avec des couleurs bien distinctes
-            colormap = cm.get_cmap('tab20' if n_clusters <= 20 else 'hsv', n_clusters)
+            colormap_name = 'tab20' if n_clusters <= 20 else 'hsv'
+            colormap = plt.colormaps.get_cmap(colormap_name).resampled(n_clusters)
             colors = {}
             for i, cluster_id in enumerate(unique_clusters):
                 rgb = colormap(i)[:3]  # Récupérer RGB sans alpha
@@ -92,8 +93,16 @@ def create_map(data, output):
         <b>Tags:</b> {row['tags']}<br>
         <b>Date Taken:</b> {date_taken_str}<br>
         <b>Date Upload:</b> {date_upload_str}<br>
-        <a href="{row['url']}" target="_blank">🔗 Voir la photo sur Flickr</a>
         """
+        
+        # Ajouter les top termes du cluster si disponibles
+        if top_terms and cluster in top_terms:
+            top_words_list = top_terms[cluster]
+            if top_words_list:
+                words_str = ", ".join([f"{w} ({c})" for w, c in top_words_list])
+                popup_text += f"<b>Top mots:</b> {words_str}<br>"
+        
+        popup_text += f"<a href=\"{row['url']}\" target=\"_blank\">🔗 Voir la photo sur Flickr</a>"
 
         folium.CircleMarker(
             location=[row['lat'], row['long']],

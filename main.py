@@ -4,6 +4,7 @@ from kmeans import kmeans_clustering
 from hierarchical import hierarchical_clustering
 from DBSCAN import dbscan_clustering
 import matplotlib.pyplot as plt
+from text_pattern_mining import preprocess_texts, calcule_top_terms
 
 # Chargement des données nettoyées
 data = load_data("./data/cleaned_flickr_data.csv")
@@ -43,4 +44,12 @@ create_map(data, output="./output/flickr_map_dbscan.html")
 
 # Clustering hiérarchique agglomératif
 data, hier_results = hierarchical_clustering(data)
+
+
+# TEXT PATTERN MINING 
+cluster_texts = preprocess_texts(data)
+top_terms = calcule_top_terms(cluster_texts)
+
+# Ajouter les top termes à la carte KMeans
+create_map(data, output="./output/flickr_map_kmeans_with_terms.html", top_terms=top_terms)
 
