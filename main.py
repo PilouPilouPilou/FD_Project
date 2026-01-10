@@ -11,7 +11,7 @@ data = load_data("./data/cleaned_flickr_data.csv")
 
 
 # Visualisation
-data = data.head(10000) # Limiter à 10000 entrées pour la visualisation pas trop lente
+data = data.head(500) # Limiter à 10000 entrées pour la visualisation pas trop lente
 create_map(data, output="./output/flickr_map.html")
 
 # Calcul et visualisation avec la méthode des KMeans
@@ -43,7 +43,7 @@ data = dbscan_clustering(data, None, None)
 create_map(data, output="./output/flickr_map_dbscan.html")
 
 # Clustering hiérarchique agglomératif
-data, hier_results = hierarchical_clustering(data)
+data, hier_results = hierarchical_clustering(data, n_clusters=56)
 
 
 # TEXT PATTERN MINING 
