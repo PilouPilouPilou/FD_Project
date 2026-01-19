@@ -29,12 +29,13 @@ print(f"Suppression anomalies: {_removed} (attendues: {len(_anomalies)})")
 
 
 # Visualisation
-data = data.head(10000) # Limiter à 10000 entrées pour la visualisation pas trop lente
+data = data.head(40000) # Limiter à 10000 entrées pour la visualisation pas trop lente
+'''
 create_map(data, output="./output/flickr_map.html")
 
 # Calcul et visualisation avec la méthode des KMeans
-data, kmeans, inertia = kmeans_clustering(data, n_clusters=50)  # Récupérer data modifiée
-create_map(data, output="./output/flickr_map_kmeans.html")
+data_kmeans, kmeans, inertia = kmeans_clustering(data, n_clusters=50)  # Récupérer data modifiée
+create_map(data_kmeans, output="./output/flickr_map_kmeans.html")
 
 # Méthode du coude pour choisir le nombre optimal de clusters pour KMeans
 inertias = []
@@ -55,8 +56,8 @@ plt.xticks(k_values)
 plt.savefig("./output/elbow.png")
 plt.close()
 print("Elbow plot saved to ./output/elbow.png")
+'''
 
 # Calcul et visualisation avec la méthode DBSCAN
-data = dbscan_clustering(data, None, None)
-create_map(data, output="./output/flickr_map_dbscan.html")
-
+data_dbscan = dbscan_clustering(data, None, None)
+create_map(data_dbscan, output="./output/flickr_map_dbscan.html")
