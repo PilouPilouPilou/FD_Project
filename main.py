@@ -52,5 +52,5 @@ cluster_texts = preprocess_texts(data)
 top_terms = calcule_top_terms(cluster_texts)
 
 # Ajouter les top termes à la carte KMeans
-create_map(data, output="./output/flickr_map_kmeans_with_terms.html", top_terms=top_terms)
+create_map(data, output="./output/flickr_map_with_terms.html", top_terms=top_terms)
 '''
