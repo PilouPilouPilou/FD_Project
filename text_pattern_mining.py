@@ -195,10 +195,10 @@ def preprocess_texts(data, custom_stopwords=None):
 
     # Retirer mots personnalisés
     if custom_stopwords is None:
-        custom_stopwords = {'photo', 'picture', 'flickr', 'image', 'jpg', 'img', 'lyon', 'franc', 'rhônealp',
+        custom_stopwords = {'photo', 'picture', 'flickr', 'image', 'jpg', 'img', 'lyon', 'franc', 'rhonealp',
                             'europ','iphon', 'bokeh', 'portrait', 'rue','vill','street','city', 'frankreich','french'
                             ,'fujifilm', 'nikon', 'canon', 'sony', 'lumix', 'panasonic', 'chat', 'cat', 'kitten',
-                            'geotag', 'cut', 'mignon', 'katz', 'kätzchen', 'chaton' }
+                            'geotag', 'cut', 'mignon', 'katz', 'katzchen', 'chaton', 'int', 'rieur', 'light'}
 
     print(f"7. Retrait des mots personnalises : {custom_stopwords}")
     for cid in cluster_texts:
@@ -274,4 +274,3 @@ def calcule_top_terms_TFIDF(cluster_texts, top_n=10):
 
     return results
 
-    
