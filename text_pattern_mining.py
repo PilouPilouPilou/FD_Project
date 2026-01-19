@@ -10,6 +10,7 @@ from mlxtend.preprocessing import TransactionEncoder
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
+import unicodedata
 
 # Télécharger les ressources NLTK si nécessaire (à commenter après la première exécution)
 try:
@@ -28,6 +29,11 @@ def basic_cleaning(text):
     if pd.isna(text):
         return ""
     text = str(text).lower()
+
+    # Supprimer les accents
+    nfd = unicodedata.normalize('NFD', text)
+    text = ''.join(char for char in nfd if unicodedata.category(char) != 'Mn')
+    
     # Garder lettres, chiffres, espaces
     text = re.sub(r'[^\w\s]', ' ', text)
     # Retirer espaces multiples
@@ -189,10 +195,10 @@ def preprocess_texts(data, custom_stopwords=None):
 
     # Retirer mots personnalisés
     if custom_stopwords is None:
-        custom_stopwords = {'photo', 'picture', 'flickr', 'image', 'jpg', 'img', 'lyon', 'franc', 'rhônealp',
+        custom_stopwords = {'photo', 'picture', 'flickr', 'image', 'jpg', 'img', 'lyon', 'franc', 'rhonealp',
                             'europ','iphon', 'bokeh', 'portrait', 'rue','vill','street','city', 'frankreich','french'
                             ,'fujifilm', 'nikon', 'canon', 'sony', 'lumix', 'panasonic', 'chat', 'cat', 'kitten',
-                            'geotag', 'cut', 'mignon', 'katz', 'kätzchen', 'chaton' }
+                            'geotag', 'cut', 'mignon', 'katz', 'katzchen', 'chaton', 'int', 'rieur', 'light'}
 
     print(f"7. Retrait des mots personnalises : {custom_stopwords}")
     for cid in cluster_texts:

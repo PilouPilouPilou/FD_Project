@@ -42,7 +42,7 @@ print("Elbow plot saved to ./output/elbow.png")
 data_dbscan = dbscan_clustering(data, None, None)
 create_map(data_dbscan, output="./output/flickr_map_dbscan.html")
 
-'''
+
 # Clustering hiérarchique agglomératif
 data_hierarchical, hier_results = hierarchical_clustering(data, n_clusters=56)
 
@@ -74,5 +74,4 @@ cluster_texts_hier = preprocess_texts(hier_results)
 top_terms = calcule_top_terms_TFIDF(cluster_texts_hier, top_n=5)
 
 # Ajouter les top termes à la carte Hierarchical
-create_map(data_hierarchical, output="./output/flickr_map_hierarchical_with_terms.html", top_terms=top_terms)
-'''
+create_map(hier_results, output="./output/flickr_map_hierarchical_with_terms.html", top_terms=top_terms)
