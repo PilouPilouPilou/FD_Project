@@ -10,6 +10,7 @@ from mlxtend.preprocessing import TransactionEncoder
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
+import unicodedata
 
 # Télécharger les ressources NLTK si nécessaire (à commenter après la première exécution)
 try:
@@ -28,6 +29,11 @@ def basic_cleaning(text):
     if pd.isna(text):
         return ""
     text = str(text).lower()
+
+    # Supprimer les accents
+    nfd = unicodedata.normalize('NFD', text)
+    text = ''.join(char for char in nfd if unicodedata.category(char) != 'Mn')
+    
     # Garder lettres, chiffres, espaces
     text = re.sub(r'[^\w\s]', ' ', text)
     # Retirer espaces multiples
