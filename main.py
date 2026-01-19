@@ -11,7 +11,7 @@ data = load_data("./data/cleaned_flickr_data.csv")
 
 
 # Visualisation
-data = data.head(3000) # Limiter à 10000 entrées pour la visualisation pas trop lente
+data = data.head(15000) # Limiter à 10000 entrées pour la visualisation pas trop lente
 create_map(data, output="./output/flickr_map.html")
 
 # Calcul et visualisation avec la méthode des KMeans
@@ -42,6 +42,7 @@ print("Elbow plot saved to ./output/elbow.png")
 data_dbscan = dbscan_clustering(data, None, None)
 create_map(data_dbscan, output="./output/flickr_map_dbscan.html")
 
+'''
 # Clustering hiérarchique agglomératif
 data_hierarchical, hier_results = hierarchical_clustering(data, n_clusters=56)
 
@@ -59,3 +60,4 @@ top_terms = calcule_top_terms(cluster_texts_db)
 
 # Ajouter les top termes à la carte DBSCAN
 create_map(data_dbscan, output="./output/flickr_map_dbscan_with_terms.html", top_terms=top_terms)
+'''

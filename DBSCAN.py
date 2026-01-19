@@ -26,11 +26,11 @@ def dbscan_clustering(data, eps_km_range=None, min_samples_range=None, min_clust
     
     # Paramètres par défaut
     if eps_km_range is None:
-        eps_km_range = np.arange(0.04, 0.14, 0.02)
+        eps_km_range = np.arange(0.14, 0.19, 0.02)
     
     # commencer min_samples à 3 pour éviter trop de clusters unitaires
     if min_samples_range is None:
-        min_samples_range = np.arange(10, 80, 10)
+        min_samples_range = np.arange(30, 90, 10)
     
     print(f"\nTest de {len(eps_km_range)} valeurs d'eps × {len(min_samples_range)} valeurs de min_samples")
     print(f"eps range: {eps_km_range[0]:.2f} à {eps_km_range[-1]:.2f} km")
@@ -149,7 +149,73 @@ def dbscan_clustering(data, eps_km_range=None, min_samples_range=None, min_clust
     if cluster_sizes:
         print(f"\nTailles des clusters: min={min(cluster_sizes)}, max={max(cluster_sizes)}, mean={np.mean(cluster_sizes):.1f}")
     
+    # POST-TRAITEMENT: subdiviser les clusters trop gros
+    dbscan_labels = refine_large_clusters(dbscan_labels, X_rad, 
+                                          max_cluster_size=(len(dbscan_labels) - n_noise_final)*0.01,
+                                          eps_km_refine=0.035,
+                                          min_samples_refine=40)
+    
     data['cluster'] = -1
     data.loc[X_df.index, 'cluster'] = dbscan_labels
     
     return data
+
+
+def refine_large_clusters(labels, X_rad, max_cluster_size=150, eps_km_refine=0.01, min_samples_refine=5):
+
+    labels = labels.copy()
+    next_cluster_id = max([l for l in labels if l != -1] or [0]) + 1
+    eps_rad_refine = eps_km_refine / 6371.0
+    
+    print(f"\n{'='*90}")
+    print(f"POST-TRAITEMENT: Raffinement des gros clusters")
+    print(f"{'='*90}")
+    print(f"Max cluster size: {max_cluster_size}")
+    print(f"eps_km: {eps_km_refine}, min_samples: {min_samples_refine}\n")
+    
+    large_clusters = []
+    for cluster_id in sorted([c for c in set(labels) if c != -1]):
+        cluster_mask = (labels == cluster_id)
+        cluster_size = np.sum(cluster_mask)
+        if cluster_size > max_cluster_size:
+            large_clusters.append((cluster_id, cluster_size))
+    
+    if not large_clusters:
+        print("Aucun cluster trop gros détecté\n")
+        return labels
+    
+    print(f"Clusters trop gros trouvés: {len(large_clusters)}\n")
+    
+    for cluster_id, size in large_clusters:
+        print(f"Raffinement du Cluster {cluster_id} ({size} points)...")
+        
+        # Extraire les points du cluster
+        cluster_mask = (labels == cluster_id)
+        cluster_points = X_rad[cluster_mask]
+        cluster_indices = np.where(cluster_mask)[0]
+        
+        # Appliquer DBSCAN fin sur ce cluster
+        dbscan_refine = DBSCAN(eps=eps_rad_refine, min_samples=min_samples_refine, metric='haversine')
+        sub_labels = dbscan_refine.fit_predict(cluster_points)
+        
+        # Compter les sous-clusters créés
+        n_subclusters = len(set(sub_labels)) - (1 if -1 in sub_labels else 0)
+        
+        if n_subclusters <= 1:
+            # Pas de subdivision possible, garder comme avant
+            print(f"  → Pas de subdivision possible, cluster conservé\n")
+            continue
+        
+        # Assigner les nouveaux IDs aux sous-clusters
+        for sub_label in set(sub_labels):
+            if sub_label == -1:  # Le bruit garde l'ID du cluster parent (périmètre)
+                sub_mask = (sub_labels == sub_label)
+                labels[cluster_indices[sub_mask]] = cluster_id
+            else:
+                sub_mask = (sub_labels == sub_label)
+                labels[cluster_indices[sub_mask]] = next_cluster_id
+                next_cluster_id += 1
+        
+        print(f"  → Divisé en {n_subclusters} sous-clusters (IDs {next_cluster_id - n_subclusters} à {next_cluster_id - 1})\n")
+    
+    return labels
