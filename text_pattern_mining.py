@@ -268,4 +268,69 @@ def calcule_top_terms_TFIDF(cluster_texts, top_n=10):
 
     return results
 
+
+def extract_ngrams(text, n=2, min_freq=2):
+    """Extrait les n-grams d'un texte"""
+    words = text.split()
+    ngrams = []
+    for i in range(len(words) - n + 1):
+        ngram = ' '.join(words[i:i+n])
+        ngrams.append(ngram)
     
+    # Compter les occurrences
+    ngram_counts = Counter(ngrams)
+    # Filtrer par fréquence minimale
+    return [(ngram, count) for ngram, count in ngram_counts.most_common() if count >= min_freq]
+
+
+def analyze_word_associations(cluster_texts, min_support=0.005, min_confidence=0.1):
+    """
+    Analyse les associations de mots par cluster
+    Affiche les n-grams fréquents (bigrammes, trigrammes)
+    """
+    print(f"\n{'='*60}")
+    print("ASSOCIATION DES MOTS (N-grams fréquents)")
+    print(f"{'='*60}\n")
+    
+    results = {}
+    
+    for cluster_id, text in cluster_texts.items():
+        words = text.split()
+        
+        if len(words) < 5:
+            results[cluster_id] = {"bigrams": [], "trigrams": []}
+            continue
+        
+        # === BIGRAMMES (paires de mots) ===
+        bigrams = extract_ngrams(text, n=2, min_freq=2)
+        
+        # === TRIGRAMMES (triplets de mots) ===
+        trigrams = extract_ngrams(text, n=3, min_freq=1)
+        
+        results[cluster_id] = {
+            "bigrams": bigrams[:10],
+            "trigrams": trigrams[:5]
+        }
+    
+    # Affichage
+    for cluster_id, data in sorted(results.items()):
+        print(f"Cluster {cluster_id}:")
+        
+        # Afficher les bigrammes
+        if data["bigrams"]:
+            print(f"  Bigrammes (paires de mots):")
+            for bigram, count in data["bigrams"][:7]:
+                print(f"    • {bigram} ({count}x)")
+        else:
+            print(f"  (pas de bigrammes)")
+        
+        # Afficher les trigrammes
+        if data["trigrams"]:
+            print(f"  Trigrammes (triplets de mots):")
+            for trigram, count in data["trigrams"][:5]:
+                print(f"    • {trigram} ({count}x)")
+        
+        print()
+    
+    return results
+

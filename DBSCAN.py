@@ -10,10 +10,6 @@ def dbscan_clustering(data, eps_km_range=None, min_samples_range=None, min_clust
     X_df = data[['lat', 'long']].dropna()
     print(f"Points à clusteriser: {len(X_df)}")
     
-    if len(X_df) < 10:
-        print("Pas assez de points pour clustering!")
-        return data
-    
     # Convertir en radians pour metric haversine
     X_rad = np.radians(X_df.values)
     
@@ -74,10 +70,6 @@ def dbscan_clustering(data, eps_km_range=None, min_samples_range=None, min_clust
                         tiny_ratio = 1.0
                         avg_size = 0.0
                     
-                    # composite score — favorise silhouette & faible noise, pénalise clusters trop petits
-                    # ajuster coefficients si besoin
-                    composite_score = (score_sil * 2.0 + (1 - noise_ratio)) * np.log1p(n_clusters)
-                    composite_score -= (tiny_ratio * 5.0)  # pénalité forte si beaucoup de très petits clusters
                     
                     results.append({
                         'eps_km': eps_km,
@@ -88,7 +80,6 @@ def dbscan_clustering(data, eps_km_range=None, min_samples_range=None, min_clust
                         'silhouette': score_sil,
                         'tiny_cluster_ratio': tiny_ratio,
                         'avg_size': avg_size,
-                        'composite': composite_score
                     })
                     
                     if score_sil > best_score:
@@ -110,19 +101,15 @@ def dbscan_clustering(data, eps_km_range=None, min_samples_range=None, min_clust
     print(f"Configurations valides: {len(results)}")
     
     if not results:
-        print("\nAUCUN RÉSULTAT VALIDE!")
-        print("Suggestions: augmenter eps_km_range / réduire min_cluster_size / vérifier densité des points")
+        print("\nPas de résultats valides obtenus.")
         return data
     
     results_df = pd.DataFrame(results)
     results_df = results_df.sort_values('silhouette', ascending=False)
     
-    print("\n" + "=" * 90)
-    print("TOP 15 CONFIGURATIONS:")
-    print("=" * 90)
-    print(results_df.head(15).to_string(index=False, float_format=lambda x: f'{x:.2f}'))
+    print("TOP 5 CONFIGURATIONS:")
+    print(results_df.head(5).to_string(index=False, float_format=lambda x: f'{x:.2f}'))
     
-    print("\n" + "=" * 90)
     print("MEILLEURE CONFIGURATION:")
     print(f"  eps: {best_config['eps_km']:.2f} km")
     print(f"  min_samples: {best_config['min_samples']}")
@@ -130,7 +117,6 @@ def dbscan_clustering(data, eps_km_range=None, min_samples_range=None, min_clust
     print(f"  Noise: {best_config['noise_ratio']*100:.1f}%")
     print(f"  Tiny cluster ratio: {best_config['tiny_ratio']:.3f}")
     print(f"  Silhouette: {best_config['silhouette']:.4f}")
-    print("=" * 90 + "\n")
     
     # Appliquer le meilleur modèle
     dbscan_final = DBSCAN(eps=best_config['eps_rad'], min_samples=best_config['min_samples'], metric='haversine')
@@ -149,11 +135,8 @@ def dbscan_clustering(data, eps_km_range=None, min_samples_range=None, min_clust
     if cluster_sizes:
         print(f"\nTailles des clusters: min={min(cluster_sizes)}, max={max(cluster_sizes)}, mean={np.mean(cluster_sizes):.1f}")
     
-    # POST-TRAITEMENT: subdiviser les clusters trop gros
-    dbscan_labels = refine_large_clusters(dbscan_labels, X_rad, 
-                                          max_cluster_size=(len(dbscan_labels) - n_noise_final)*0.01,
-                                          eps_km_refine=0.035,
-                                          min_samples_refine=40)
+    # POST-TRAITEMENT (hierarchical DBScan): subdiviser les clusters trop gros, avec nos paramètres
+    dbscan_labels = refine_large_clusters(dbscan_labels, X_rad, max_cluster_size=(len(dbscan_labels) - n_noise_final)*0.05,eps_km_refine=0.035,min_samples_refine=40)
     
     data['cluster'] = -1
     data.loc[X_df.index, 'cluster'] = dbscan_labels
