@@ -221,7 +221,7 @@ def hierarchical_clustering(data, n_clusters):
     results = {}
 
     for link in linkages:
-        print(f"→ Linkage : {link}")
+        print(f"-> Linkage : {link}")
 
         model = run_hierarchical_clustering(
             X_scaled,
