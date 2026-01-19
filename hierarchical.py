@@ -10,14 +10,12 @@ from scipy.cluster.hierarchy import dendrogram
 
 from visualization import create_map
 
+
+# Préparation des données pour le clustering 
 def prepare_features(data, features):
     """
-    Applique une normalisation (standardisation).
+    Applique une normalisation avec StandardScaler
     """
-    for col in features:
-        if col not in data.columns:
-            raise ValueError(f"Colonne manquante dans les données : {col}")
-
     X = data[features].values.astype(float)
 
     scaler = StandardScaler()
@@ -26,83 +24,7 @@ def prepare_features(data, features):
     return X_scaled
 
 
-def plot_silhouette_curve(X, linkage,  metric, k_min=2, k_max=100, outpath="output/silhouette_curve.png"):
-    """
-    Calcule et trace la courbe du score de silhouette
-    en fonction du nombre de clusters.
-    """
-
-    ks = []
-    scores = []
-
-    print("Calcul de la courbe de silhouette...")
-
-    for k in range(k_min, k_max + 1):
-        model = AgglomerativeClustering(
-            n_clusters=k,
-            linkage=linkage,
-            metric=metric
-        )
-
-        labels = model.fit_predict(X)
-
-        if len(np.unique(labels)) > 1:
-            score = silhouette_score(X, labels, metric=metric)
-            ks.append(k)
-            scores.append(score)
-
-    ks = np.array(ks)
-    scores = np.array(scores)
-
-    # ====== PLOT ======
-    plt.figure(figsize=(10, 6))
-    plt.plot(ks, scores, marker='o', linewidth=2)
-    plt.xlabel("Nombre de clusters (k)")
-    plt.ylabel("Score de silhouette moyen")
-    plt.title(f"Courbe de silhouette – linkage = {linkage}")
-
-    plt.grid(alpha=0.3)
-    plt.tight_layout()
-    plt.savefig(outpath)
-    plt.close()
-
-    print(f"Courbe de silhouette sauvegardée : {outpath}")
-
-
-
-
-def find_best_n_clusters(X_scaled, linkage, metric, k_min, k_max):
-    """
-    Teste plusieurs nombres de clusters et retourne celui
-    qui maximise le score de silhouette moyen.
-    """
-    best_k = None
-    best_score = -1
-
-    for k in range(k_min, k_max + 1):
-        model = AgglomerativeClustering(
-            n_clusters=k,
-            linkage=linkage,
-            metric=metric
-        )
-
-        labels = model.fit_predict(X_scaled)
-
-        # Silhouette uniquement si plus d'un cluster
-        if len(np.unique(labels)) > 1:
-            score = silhouette_score(X_scaled, labels, metric=metric)
-        else:
-            score = -1
-
-        if score > best_score:
-            best_score = score
-            best_k = k
-
-    return best_k, best_score
-
-
 # Dendrogrammes
-
 def plot_dendrogram(model, labels, title, outpath=None):
     """
     Construit la matrice de linkage à partir du modèle sklearn
@@ -129,9 +51,9 @@ def plot_dendrogram(model, labels, title, outpath=None):
 
     fig = plt.figure(figsize=(12, 8))
 
-    # Si le dataset est trop gros, on tronque le dendrogramme
+    # Tronquer le dendrogramme si trop grand
     try:
-        if n_samples > 1000:
+        if n_samples > 5000:
             dendrogram(
                 linkage_matrix,
                 truncate_mode='lastp',
@@ -164,6 +86,15 @@ def plot_dendrogram(model, labels, title, outpath=None):
     plt.close(fig)
 
 
+# Silhouette
+def compute_silhouette(X_scaled, labels, metric):
+    """
+    Calcule le score de silhouette moyen et par point.
+    """
+    sil_avg = silhouette_score(X_scaled, labels, metric=metric)
+    sil_values = silhouette_samples(X_scaled, labels, metric=metric)
+
+    return sil_avg, sil_values
 
 # Clustering hiérarchique
 def run_hierarchical_clustering(X_scaled, n_clusters, linkage, metric):
@@ -182,24 +113,7 @@ def run_hierarchical_clustering(X_scaled, n_clusters, linkage, metric):
     model.fit(X_scaled)
     return model
 
-
-# Silhouette
-def compute_silhouette(X_scaled, labels, metric):
-    """
-    Calcule le score de silhouette moyen et par point.
-    En cas de problème, renvoie None et des zéros.
-    """
-    try:
-        sil_avg = silhouette_score(X_scaled, labels, metric=metric)
-        sil_values = silhouette_samples(X_scaled, labels, metric=metric)
-    except Exception:
-        sil_avg = None
-        sil_values = np.zeros(len(labels))
-
-    return sil_avg, sil_values
-
-
-
+# Clustering hiérarchique (fonction principale)
 def hierarchical_clustering(data, n_clusters):
     """
     Applique un clustering hiérarchique agglomératif
@@ -207,7 +121,7 @@ def hierarchical_clustering(data, n_clusters):
     """
 
     features = ['lat', 'long']
-    linkages = ['complete']  # tu peux en rajouter plus tard
+    linkages = ['complete', 'average', 'single']
     metric = 'euclidean'
 
     output_dir = "output"
@@ -221,7 +135,7 @@ def hierarchical_clustering(data, n_clusters):
     results = {}
 
     for link in linkages:
-        print(f"-> Linkage : {link}")
+        print(f"Linkage : {link}")
 
         model = run_hierarchical_clustering(
             X_scaled,
@@ -230,7 +144,7 @@ def hierarchical_clustering(data, n_clusters):
             metric=metric
         )
 
-        # Dendrogramme
+        # Dendrogrammes
         dendro_path = os.path.join(output_dir, f"dendrogram_{link}.png")
         plot_dendrogram(
             model=model,
@@ -253,7 +167,7 @@ def hierarchical_clustering(data, n_clusters):
 
         df[silhouette_col] = sil_values
 
-        # Carte HTML
+        # Affichage sur la carte 
         map_df = df.copy()
         map_df["cluster"] = map_df[cluster_col]
 
@@ -262,18 +176,12 @@ def hierarchical_clustering(data, n_clusters):
             f"flickr_map_hierarchical_{link}.html"
         )
 
-        try:
-            create_map(map_df, map_path)
-        except Exception:
-            map_path = None
+        create_map(map_df, map_path)
 
-        results[link] = {
-            "n_clusters": n_clusters,
-            "dendrogram": dendro_path,
-            "map": map_path,
-            "silhouette_avg": float(sil_avg) if sil_avg is not None else None
-        }
-
+    # Colonne unifiée 'cluster' basée sur linkage 'complete' pour traitement ultérieur
+    results = df.copy()
+    results["cluster"] = df["cluster_complete"]
+    
     return df, results
 
 
@@ -289,25 +197,13 @@ if __name__ == "__main__":
     nb_datas = 10000
     data = data.head(nb_datas)
 
-    # best k trouvés : 56 puis 84
+    # best k trouvés dans best_nd_cluster.py : 56 puis 84
     best_k = 56
 
-    features = ['lat', 'long']
-    metric = 'euclidean'
-    linkage = 'complete'
-
     # Préparation des données
+    features = ['lat', 'long']
     X_scaled = prepare_features(data, features)
 
-    # Tracer la courbe de silhouette pour trouver visuellement le meilleur k
-    #plot_silhouette_curve(X_scaled, linkage=linkage, metric=metric, k_min=2, k_max=100, outpath="output/silhouette_curve.png")
-
-    #Rechercher le meilleur k automatiquement
-    #print("Recherche du nombre optimal de clusters avec", nb_datas, "données...")
-
-    #best_k, best_sil = find_best_n_clusters(X_scaled, linkage, metric, k_min=10, k_max=100)
-    #print(f"Nombre optimal de clusters : {best_k}")
-    #print(f"Silhouette moyenne : {best_sil:.3f}")
-
     # Clustering avec le k choisi
-    data_clustered, results = hierarchical_clustering(data,best_k)
+    data_clustered = hierarchical_clustering(data,best_k)
+
