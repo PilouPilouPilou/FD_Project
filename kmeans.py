@@ -12,7 +12,6 @@ def kmeans_clustering(data, n_clusters):
     # Standardiser les données
     scaler = StandardScaler()
     scaled_data = scaler.fit_transform(data_clustering)
-    print(scaled_data)
 
     scaled_data_df = pd.DataFrame(data=scaled_data, columns=data_clustering.columns)
     scaled_data_df.head()
@@ -25,6 +24,5 @@ def kmeans_clustering(data, n_clusters):
     data['cluster'] = kmeans.labels_
 
     inertia = kmeans.inertia_
-    print(f"Sum of squared distances: {inertia}")
 
     return data, kmeans, inertia

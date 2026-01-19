@@ -11,7 +11,7 @@ def dbscan_clustering(data, eps_km_range=None, min_samples_range=None, min_clust
     print(f"Points à clusteriser: {len(X_df)}")
     
     if len(X_df) < 10:
-        print("❌ Pas assez de points pour clustering!")
+        print("Pas assez de points pour clustering!")
         return data
     
     # Convertir en radians pour metric haversine
@@ -26,11 +26,11 @@ def dbscan_clustering(data, eps_km_range=None, min_samples_range=None, min_clust
     
     # Paramètres par défaut
     if eps_km_range is None:
-        eps_km_range = np.arange(0.06, 0.14, 0.02)
+        eps_km_range = np.arange(0.04, 0.14, 0.02)
     
     # commencer min_samples à 3 pour éviter trop de clusters unitaires
     if min_samples_range is None:
-        min_samples_range = np.arange(40, 80, 10)
+        min_samples_range = np.arange(10, 80, 10)
     
     print(f"\nTest de {len(eps_km_range)} valeurs d'eps × {len(min_samples_range)} valeurs de min_samples")
     print(f"eps range: {eps_km_range[0]:.2f} à {eps_km_range[-1]:.2f} km")
@@ -110,7 +110,7 @@ def dbscan_clustering(data, eps_km_range=None, min_samples_range=None, min_clust
     print(f"Configurations valides: {len(results)}")
     
     if not results:
-        print("\n❌ AUCUN RÉSULTAT VALIDE!")
+        print("\nAUCUN RÉSULTAT VALIDE!")
         print("Suggestions: augmenter eps_km_range / réduire min_cluster_size / vérifier densité des points")
         return data
     
