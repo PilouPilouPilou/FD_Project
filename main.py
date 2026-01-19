@@ -42,6 +42,7 @@ print("Elbow plot saved to ./output/elbow.png")
 data_dbscan = dbscan_clustering(data, None, None)
 create_map(data_dbscan, output="./output/flickr_map_dbscan.html")
 
+'''
 # Clustering hiérarchique agglomératif
 data_hierarchical, hier_results = hierarchical_clustering(data, n_clusters=56)
 
