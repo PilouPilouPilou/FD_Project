@@ -127,7 +127,7 @@ def create_global_wordcloud(cluster_texts, output_path='./output/wordcloud_globa
                           prefer_horizontal=0.7).generate_from_frequencies(word_freq)
 
     plt.figure(figsize=(15, 8))
-    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.imshow(wordcloud.to_image(), interpolation='bilinear')
     plt.axis('off')
     plt.title('Mots les plus fréquents (tous clusters)', fontsize=16)
     plt.tight_layout()
