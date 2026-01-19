@@ -51,4 +51,11 @@ cluster_texts = preprocess_texts(data_kmeans)
 top_terms = calcule_top_terms(cluster_texts)
 
 # Ajouter les top termes à la carte KMeans
-create_map(data, output="./output/flickr_map_kmeans_with_terms.html", top_terms=top_terms)
+create_map(data_kmeans, output="./output/flickr_map_kmeans_with_terms.html", top_terms=top_terms)
+
+# TEXT PATTERN MINING 
+cluster_texts_db = preprocess_texts(data_dbscan)
+top_terms = calcule_top_terms(cluster_texts_db)
+
+# Ajouter les top termes à la carte DBSCAN
+create_map(data_dbscan, output="./output/flickr_map_dbscan_with_terms.html", top_terms=top_terms)
