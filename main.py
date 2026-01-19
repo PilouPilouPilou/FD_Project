@@ -11,12 +11,7 @@ data = load_data("./data/cleaned_flickr_data.csv")
 
 
 # Visualisation
-<<<<<<< HEAD
 data = data.head(40000) # Limiter à 10000 entrées pour la visualisation pas trop lente
-'''
-=======
-data = data.head(500) # Limiter à 10000 entrées pour la visualisation pas trop lente
->>>>>>> refs/remotes/origin/main
 create_map(data, output="./output/flickr_map.html")
 
 # Calcul et visualisation avec la méthode des KMeans
@@ -58,4 +53,4 @@ top_terms = calcule_top_terms(cluster_texts)
 
 # Ajouter les top termes à la carte KMeans
 create_map(data, output="./output/flickr_map_kmeans_with_terms.html", top_terms=top_terms)
-
+'''
