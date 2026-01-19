@@ -206,8 +206,8 @@ def preprocess_texts(data, custom_stopwords=None):
 
 def calcule_top_terms(cluster_texts, top_n=10):
     # 8. Top termes par cluster (fréquences brutes)
-    print("\n8. Top 5 mots par cluster (frequences)")
-    top_terms = top_terms_by_cluster(cluster_texts, top_n=5)
+    print(f"\n8. Top {top_n} mots par cluster (frequences)")
+    top_terms = top_terms_by_cluster(cluster_texts, top_n=top_n)
     for cid in sorted(top_terms.keys()):
         pairs = top_terms[cid]
         if not pairs:
@@ -216,5 +216,56 @@ def calcule_top_terms(cluster_texts, top_n=10):
         formatted = ", ".join([f"{w}: {c}" for w, c in pairs])
         print(f"   Cluster {cid}: {formatted}")
     return top_terms
+
+def calcule_top_terms_TFIDF(cluster_texts, top_n=10):
+    """Calcule les top termes par cluster selon TF-IDF.
+    Prend un dict {cluster_id: texte} et retourne {cluster_id: [(mot, score), ...]}.
+    """
+    print(f"\n8b. Top {top_n} mots par cluster (TF-IDF)")
+
+    if not cluster_texts:
+        return {}
+
+    # Ordonner les clusters pour un affichage stable
+    ordered_ids = sorted(cluster_texts.keys())
+    documents = [cluster_texts[cid] for cid in ordered_ids]
+
+    # Vectoriseur TF-IDF (on ignore les tokens < 3 caractères, TF sublinéaire)
+    vectorizer = TfidfVectorizer(
+        lowercase=True,
+        token_pattern=r"(?u)\b\w{3,}\b", # mots d'au moins 3 caractères
+        use_idf=True,
+        smooth_idf=True,
+        sublinear_tf=True,
+        norm='l2',
+        max_df=0.8,
+    )
+
+    try:
+        tfidf_matrix = vectorizer.fit_transform(documents)
+    except ValueError:
+        # Vocabulaire vide (par ex. textes vides après nettoyage)
+        return {cid: [] for cid in ordered_ids}
+
+    feature_names = vectorizer.get_feature_names_out()
+
+    results = {}
+    for i, cid in enumerate(ordered_ids):
+        row = tfidf_matrix[i].toarray().ravel()
+        # Vérifier si le cluster a des termes significatifs
+        if row.size == 0 or (row <= 0).all():
+            results[cid] = []
+            print(f"   Cluster {cid}: (aucun terme significatif)")
+            continue
+
+        # Indices triés par score décroissant et gadner les top_n premiers
+        top_idx = row.argsort()[::-1][:top_n]
+        pairs = [(feature_names[j], float(row[j])) for j in top_idx if row[j] > 0] # crée tuples (mot, score), en gardant que les scores > 0
+        results[cid] = pairs # stocke dans le dict {cluster_id: [(mot, score), ...]}
+
+        formatted = ", ".join([f"{w}: {score:.3f}" for w, score in pairs])
+        print(f"   Cluster {cid}: {formatted}")
+
+    return results
 
     
