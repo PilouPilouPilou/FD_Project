@@ -6,8 +6,10 @@ from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
 
 def kmeans_clustering(data, n_clusters):
+    df = data.copy()
+
     # Sélectionner les colonnes avec long et lat pour le clustering
-    data_clustering = data[['lat', 'long']].dropna()
+    data_clustering = df[['lat', 'long']].dropna()
 
     # Standardiser les données
     scaler = StandardScaler()
@@ -20,9 +22,9 @@ def kmeans_clustering(data, n_clusters):
     kmeans = KMeans(n_clusters=n_clusters, init='k-means++')
     kmeans.fit(scaled_data_df)
 
-    # Ajouter les labels de cluster au DataFrame original
-    data['cluster'] = kmeans.labels_
+    # Ajouter les labels de cluster au DataFrame copié
+    df['cluster'] = kmeans.labels_
 
     inertia = kmeans.inertia_
 
-    return data, kmeans, inertia
+    return df, kmeans, inertia

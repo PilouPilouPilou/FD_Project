@@ -23,7 +23,7 @@ inertias = []
 k_values = range(5, 100)  # Test k from 1 to 100
 
 for k in k_values:
-    data, kmeans, inertia = kmeans_clustering(data, k)
+    _, _, inertia = kmeans_clustering(data, k)
     inertias.append(inertia)
 
 # Plot the elbow curve
