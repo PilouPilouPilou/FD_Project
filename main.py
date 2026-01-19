@@ -1,36 +1,22 @@
 from load_data import load_data
-from clean_data import convert_types, remove_duplicates, detect_anomalies
 from visualization import create_map
 from kmeans import kmeans_clustering
 from hierarchical import hierarchical_clustering
 from DBSCAN import dbscan_clustering
 import matplotlib.pyplot as plt
+from text_pattern_mining import preprocess_texts, calcule_top_terms
 
-# Chargement
-data = load_data("./data/flickr_data2.csv")
-
-# Nettoyage
-data = convert_types(data)
-
-# Dédoublonnage 
-print("\n--- Dédoublonnage des données ---")
-data = remove_duplicates(data)
-
-
-# Détection d'anomalies (génère un CSV de synthèse)
-_anomalies, anomaly_counts = detect_anomalies(data, save_path="./output/anomalies.csv")
-
-
-# Retirer les anomalies avant la visualisation et le clustering
-_before = len(data)
-data = data.drop(index=_anomalies.index)
-_removed = _before - len(data)
-print(f"Suppression anomalies: {_removed} (attendues: {len(_anomalies)})")
+# Chargement des données nettoyées
+data = load_data("./data/cleaned_flickr_data.csv")
 
 
 # Visualisation
+<<<<<<< HEAD
 data = data.head(40000) # Limiter à 10000 entrées pour la visualisation pas trop lente
 '''
+=======
+data = data.head(500) # Limiter à 10000 entrées pour la visualisation pas trop lente
+>>>>>>> refs/remotes/origin/main
 create_map(data, output="./output/flickr_map.html")
 
 # Calcul et visualisation avec la méthode des KMeans
@@ -61,3 +47,15 @@ print("Elbow plot saved to ./output/elbow.png")
 # Calcul et visualisation avec la méthode DBSCAN
 data_dbscan = dbscan_clustering(data, None, None)
 create_map(data_dbscan, output="./output/flickr_map_dbscan.html")
+
+# Clustering hiérarchique agglomératif
+data, hier_results = hierarchical_clustering(data, n_clusters=56)
+
+
+# TEXT PATTERN MINING 
+cluster_texts = preprocess_texts(data)
+top_terms = calcule_top_terms(cluster_texts)
+
+# Ajouter les top termes à la carte KMeans
+create_map(data, output="./output/flickr_map_kmeans_with_terms.html", top_terms=top_terms)
+
