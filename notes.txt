@@ -61,3 +61,26 @@ Nombre de lignes avec au moins une date manquante: 143
 Regarder le cas de meme id et meme auteur, car parfois post avec plusieurs photos
 Changer parametrage de out of Lyon pour resserer
 Optionnel : regarder ce décallage dans les dates qui casse tout
+=> les utilisateurs qui mettent cet emoji ;) qui est vu comme un séparateur 
+
+Suppression d'une ligne avec des caractères illisible et très longue sans que cela correscponde au post réel. https://www.flickr.com/photos/51492218@N00/10205920193
+
+
+Analyse temporelle: 
+- Par année: 
+On voit que l'année 2010 à 2019 sont largement prépondérantes. 
+
+- Par mois de l'année : 
+Déja dans le graphique on voit que beaucoup de photos ont été postées en décembre, 
+bien plus que dans tous les autres mois de l'année (>22000 photos).
+Visuellement aussi, beaucoup de clusters roses = novembre décembre. 
+Les clusters sont souvent des jours autour du 335-350 eme jour de l'année 
+=> cela pourrait correspondre à la fete des lumières.
+
+On va donc vérifier cela. 
+1) en affichant les tags sur la période du 338 au 350 eme jour => oui c'est bien la fete des lumières qui revient
+2) valider avec l'algo de text pattern mining. (à faire)
+
+On note aussi le jour 102 avec un beau cluster: 316 photos prises le meme jour par l'utilisateur 127623444@N04.
+Beaucoup à un endroit (colline de Fourviere) mais aussi un peu sur des ponts et dans els reste de la ville (comme un chemin)
+=> Tous les pics d'activité ne correspondent pas à des événements, certains reflètent des pratiques individuelles.
