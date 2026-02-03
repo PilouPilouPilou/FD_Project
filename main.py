@@ -11,7 +11,7 @@ data = load_data("./data/cleaned_flickr_data.csv")
 
 
 # Visualisation
-data = data.head(8000) # Limiter à 10000 entrées pour la visualisation pas trop lente
+data = data.head(10000) # Limiter à 10000 entrées pour la visualisation pas trop lente
 create_map(data, output="./output/flickr_map.html")
 
 # Calcul et visualisation avec la méthode des KMeans
@@ -55,8 +55,18 @@ top_terms = calcule_top_terms_TFIDF(cluster_texts, top_n=5)
 word_associations = analyze_word_associations(cluster_texts, min_support=0.005, min_confidence=0.1)
 
 # Ajouter les top termes à la carte KMeans
-create_map(data_kmeans, output="./output/flickr_map_kmeans_with_terms.html", top_terms=top_terms)
-'''
+create_map(data_kmeans, output="./output/flickr_map_kmeans_with_terms.html", top_terms=top_terms, top_ngrams=word_associations)
+
+
+# TEXT PATTERN MINING 
+cluster_texts_hier = preprocess_texts(hier_results)
+top_terms = calcule_top_terms_TFIDF(cluster_texts_hier, top_n=5)
+
+# Analyse des associations de mots pour Hierarchical
+word_associations_hier = analyze_word_associations(cluster_texts_hier, min_support=0.005, min_confidence=0.1)
+
+# Ajouter les top termes à la carte Hierarchical
+create_map(hier_results, output="./output/flickr_map_hierarchical_with_terms.html", top_terms=top_terms, top_ngrams=word_associations_hier)
 
 # TEXT PATTERN MINING 
 cluster_texts_db = preprocess_texts(data_dbscan)
@@ -66,12 +76,5 @@ top_terms = calcule_top_terms_TFIDF(cluster_texts_db, top_n=5)
 word_associations_db = analyze_word_associations(cluster_texts_db, min_support=0.005, min_confidence=0.1)
 
 # Ajouter les top termes à la carte DBSCAN
-create_map(data_dbscan, output="./output/flickr_map_dbscan_with_terms.html", top_terms=top_terms)
+create_map(data_dbscan, output="./output/flickr_map_dbscan_with_terms.html", top_terms=top_terms, top_ngrams=word_associations_db)
 
-'''
-# TEXT PATTERN MINING 
-cluster_texts_hier = preprocess_texts(hier_results)
-top_terms = calcule_top_terms_TFIDF(cluster_texts_hier, top_n=5)
-
-# Ajouter les top termes à la carte Hierarchical
-create_map(hier_results, output="./output/flickr_map_hierarchical_with_terms.html", top_terms=top_terms)

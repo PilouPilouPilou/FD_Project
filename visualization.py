@@ -6,7 +6,7 @@ from shapely.geometry import MultiPoint, Point
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-def create_map(data, output, top_terms=None):
+def create_map(data, output, top_terms=None, top_ngrams=None):
     # Créer le dossier s'il existe pas
     output_dir = os.path.dirname(output)
     if output_dir and not os.path.exists(output_dir):
@@ -101,7 +101,19 @@ def create_map(data, output, top_terms=None):
             if top_words_list:
                 words_str = ", ".join([f"{w} ({c})" for w, c in top_words_list])
                 popup_text += f"<b>Top mots:</b> {words_str}<br>"
-        
+
+        # Ajouter les n-grams pertinents (bigrammes/trigrammes) si fournis
+        if top_ngrams and cluster in top_ngrams:
+            ngram_info = top_ngrams[cluster]
+            bigrams = ngram_info.get('bigrams', [])
+            trigrams = ngram_info.get('trigrams', [])
+            if bigrams:
+                bigram_str = ", ".join([f"{ng} ({cnt}x)" for ng, cnt in bigrams[:3]])
+                popup_text += f"<b>Bigrammes:</b> {bigram_str}<br>"
+            if trigrams:
+                trigram_str = ", ".join([f"{ng} ({cnt}x)" for ng, cnt in trigrams[:2]])
+                popup_text += f"<b>Trigrammes:</b> {trigram_str}<br>"
+
         popup_text += f"<a href=\"{row['url']}\" target=\"_blank\">🔗 Voir la photo sur Flickr</a>"
 
         folium.CircleMarker(
